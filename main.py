@@ -5,10 +5,12 @@ from collections import Counter
 from itertools import *
 from pylab import *
 
+import matplotlib.pyplot as plt
+
 special_characters = [",", ".", "/", "\"", ";", "-", "_", "!", "?", "(", ")", "--", ".\"", "!--", ",\"", ".--", "'", ":", "*", '""', '"', "``", "''", "'d", "'s", "l.", "Cf", "Keats", "Lawrence", 'Cf']
 
 def main():
-    #book = gutenberg.words("lawrence.txt")
+    book = gutenberg.words("lawrence.txt")
     with open("keats.txt", "r") as file:
         text = ""
         line = file.readline()
@@ -18,6 +20,9 @@ def main():
         #print(text)
         tokens = word_tokenize(text)
     #print(tokens)
+    
+    line_lenghts("keats.txt")
+    
     list = get_most_frequent_words(tokens)
     part_of_speech(tokens)
     #for line in list:
@@ -50,6 +55,61 @@ def get_most_frequent_words(book):
     return mostCommon
     
     
+def line_lenghts(file):
+    lengths = []
+    lengths_no_space = []
+    with open(file, "r") as f:
+        lines = f.readlines()
+        for line in lines:
+            length = len(line)
+            length2 = len(line.replace(" ",""))
+            if length > 1:
+                lengths.append(length)
+                
+            if length2 > 1:
+                lengths_no_space.append(length2)
+                
+    
+    newFile = file.split(".")[0]+"_line_lenghts.txt"
+    
+    with open(newFile, "a") as f:
+        for l in lengths:
+            f.write(str(l)+"\n")
+    
+    newFile = file.split(".")[0]+"_line_lenghts_no_space.txt"
+    
+    
+    with open(newFile, "a") as f:
+        for l in lengths_no_space:
+            f.write(str(l)+"\n")
+            
+    #print(lengths)
+    
+    uniquel1 = list(set(lengths))
+    
+    uniquel2 = list(set(lengths_no_space))
+    
+    freq = []
+    
+    freq_no_space = []
+    
+    for u in uniquel1:
+        c = lengths.count(u)
+        
+        freq.append(c)
+        
+    for u in uniquel2:
+        c = lengths_no_space.count(u)
+        
+        freq_no_space.append(c)
+        
+    
+    plt.plot(uniquel1, freq)
+    plt.show()
+    
+    plt.plot(uniquel2, freq_no_space)
+    plt.show()
+    
 def write_file(word, frequency, file):
     with open(file, "a") as file:
         file.write(word+","+str(frequency)+"\n")
@@ -63,7 +123,7 @@ def poem_lines(poem):
 def part_of_speech(book):
     pos = pos_tag(book)
     freq = FreqDist(pos)
-    print(pos)
+    #print(pos)
     freq.plot(30, cumulative=False)
     
     for line in freq:
