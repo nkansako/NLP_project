@@ -25,6 +25,7 @@ def main():
     
     list = get_most_frequent_words(tokens)
     part_of_speech(tokens)
+    first_and_last_word("keats.txt")
     #for line in list:
     #    write_file(line[0], line[1], "keats.txt")
       
@@ -105,14 +106,41 @@ def line_lenghts(file):
         
     
     plt.plot(uniquel1, freq)
+    plt.title("Line length frequency with space, Keats")
     plt.show()
     
     plt.plot(uniquel2, freq_no_space)
+    plt.title("Line length frequency without space, Keats")
     plt.show()
     
 def write_file(word, frequency, file):
     with open(file, "a") as file:
         file.write(word+","+str(frequency)+"\n")
+        
+def first_and_last_word(file):
+
+    """
+    THIS FUNCTION DOES NOT WORK
+    
+    Basically it takes one character at a time instead of one word at a time. 
+    """
+    with open(file, "r") as f:
+        lines = f.readlines()
+    
+    startwords = []
+    endwords = []
+    
+    for line in lines:
+        line = line.rstrip()
+        line = word_tokenize(line)
+        if len(line) > 0:
+            if line[-1] in special_characters:
+                line.pop(-1)
+            startwords.append(pos_tag(line)[0])
+            endwords.append(pos_tag(line)[-1])
+        
+    print(startwords)
+    print(endwords)
 
 def poem_lines(poem):
     """
