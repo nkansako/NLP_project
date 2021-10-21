@@ -26,11 +26,11 @@ def main():
         chapters = preprocess(book)
         first_last = only_first_and_last_words(chapters)
         #most_frequent_words(chapters)
-        part_of_speech(chapters)
+        #part_of_speech(chapters)
         #line_lenghts(chapters)
         #count_negations(chapters)
         #newFreq(chapters)
-        #phonetic(first_last)
+        phonetic(first_last)
         
 def most_frequent_words(book):
     allwords = ""
@@ -335,6 +335,7 @@ def only_first_and_last_words(book_: dict) -> dict:
     return retval
     
 def phonetic(book):
+    print(book)
     phonetics = []
     try: 
         a = book["LAMIA."]
@@ -347,9 +348,71 @@ def phonetic(book):
             last = line[1]
             s1 = fuzzy.Soundex(len(first))
             s2 = fuzzy.Soundex(len(last))
+            print(first, last) #show what happens
+            l1 = s1(first) # These fail with non ascii characters
+            l2 = s2(last)
+            print(l1, l2)
             
-            
-                
-
+            S = len(largest_common_substring(l1, l2, len(l1), len(l2)))
+            try:
+                similarity = 2 * S / ( len(l1) + len(l2) )
+            except ZeroDivisionError as e:
+                similarity = 0
+            phonetics.append(similarity)
+        
+def largest_common_substring(X, Y, m, n):
+    LCSuff = [[0 for i in range(n + 1)]
+                 for j in range(m + 1)]
+ 
+    # To store length of the
+    # longest common substring
+    length = 0
+ 
+    # To store the index of the cell
+    # which contains the maximum value.
+    # This cell's index helps in building
+    # up the longest common substring
+    # from right to left.
+    row, col = 0, 0
+ 
+    # Following steps build LCSuff[m+1][n+1]
+    # in bottom up fashion.
+    for i in range(m + 1):
+        for j in range(n + 1):
+            if i == 0 or j == 0:
+                LCSuff[i][j] = 0
+            elif X[i - 1] == Y[j - 1]:
+                LCSuff[i][j] = LCSuff[i - 1][j - 1] + 1
+                if length < LCSuff[i][j]:
+                    length = LCSuff[i][j]
+                    row = i
+                    col = j
+            else:
+                LCSuff[i][j] = 0
+ 
+    # if true, then no common substring exists
+    if length == 0:
+        print("No Common Substring")
+        return ""
+ 
+    # allocate space for the longest
+    # common substring
+    resultStr = ['0'] * length
+ 
+    # traverse up diagonally form the
+    # (row, col) cell until LCSuff[row][col] != 0
+    while LCSuff[row][col] != 0:
+        length -= 1
+        resultStr[length] = X[row - 1] # or Y[col-1]
+ 
+        # move diagonally up to previous cell
+        row -= 1
+        col -= 1
+ 
+    # required longest common substring
+    #print(''.join(resultStr))
+    
+    return ''.join(resultStr)
+    
 if __name__ == "__main__":
     main()
