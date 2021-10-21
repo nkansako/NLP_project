@@ -8,6 +8,12 @@ import re
 from scipy.stats import kurtosis
 from scipy.stats import skew
 import statistics
+from scipy.optimize import curve_fit
+from scipy.special import zetac
+import fuzzy
+
+def f(x, a):
+    return (x**-a)/zetac(a)
 
 special_characters = [",", ".", "/", "\"", ";", "-", "_", "!", "?", "(", ")", "--", ".\"", "!--", ",\"", ".--", "'", ":", "*", '""', '"', "``", "''", "'d", "'s", "l.", "Cf", "Keats", "Lawrence", 'Cf', '’', '‘', '’']
 
@@ -18,11 +24,14 @@ def main():
     
     for book in b:
         chapters = preprocess(book)
+        first_last = only_first_and_last_words(chapters)
         #most_frequent_words(chapters)
-        #part_of_speech(chapters)
+        part_of_speech(chapters)
         #line_lenghts(chapters)
-        count_negations(chapters)
-
+        #count_negations(chapters)
+        #newFreq(chapters)
+        #phonetic(first_last)
+        
 def most_frequent_words(book):
     allwords = ""
     name = ""
@@ -71,8 +80,14 @@ def part_of_speech(book):
         c = tags.count(u)
         freq.append(c)
         new.append(u)
-   
-    plt.bar(unique, freq)
+    
+    zipped = zip(unique, freq)
+    
+    s = sorted(zipped, key=lambda x: x[1], reverse=True)
+    
+    for _ in s:
+        #plt.bar(unique, freq)
+        plt.bar(_[0], _[1], color="blue")
     t = "Part of speech frequency "+name
     plt.title(t)
     plt.show()
@@ -189,6 +204,8 @@ def count_negations(book):
     negations_list = []
     count_negatives = 0
     count_lines = 0
+    tags = []
+    fd = FreqDist()
     try: 
         a = book["LAMIA."]
         name = "Keats"
@@ -204,6 +221,8 @@ def count_negations(book):
                 for token in tokens:
                     if token in negations:
                         count_negatives += 1
+                        tag = pos_tag(word_tokenize(token))
+                        tags.append(tag[0][1])
             else:
                 negations_list.append(count_negatives)
                 count_lines = 0
@@ -212,8 +231,10 @@ def count_negations(book):
                 for token in tokens:
                     if token in negations:
                         count_negatives += 1
+                        tag = pos_tag(word_tokenize(token))
+                        tags.append(tag[0][1])
     #print(negations_list)
-    
+    #print(tags)
     unique = list(set(negations_list))
     
     freq = []
@@ -224,11 +245,72 @@ def count_negations(book):
     
     freq = [f / (b / 5) * 100 for f in freq]
     
+    #result = curve_fit(f, unique, freq)
+    #print(result)
+    
     plt.bar(unique, freq)
     t = "Negations for every 5 lines "+name 
     plt.title(t)
     plt.xlabel("Amount of negations found in 5 consecutive line structure")
     plt.ylabel("Percentage of 5 consecutive lines")
+    plt.show()
+    
+    uniquetags = list(set(tags))
+    
+    freqtags = []
+    
+    for u in uniquetags:
+        c = tags.count(u)
+        freqtags.append(c)
+    
+    zipped = zip(uniquetags, freqtags)
+    
+    s = sorted(zipped, key=lambda x: x[1], reverse=True)
+    
+    for _ in s:
+        #plt.bar(unique, freq)
+        plt.bar(_[0], _[1], color="blue")
+    
+    #plt.bar(uniquetags, freqtags)
+    t = "Negations part of speech tag "+name 
+    plt.title(t)
+    plt.xlabel("Part of speech tag")
+    plt.ylabel("Frequency of part of speech tags")
+    plt.show()
+    
+    
+def newFreq(book):
+    """
+    This was a test to try this out, doesnt seem to work 
+    """
+    fd = FreqDist()
+    try: 
+        a = book["LAMIA."]
+        name = "Keats"
+        b = 4101
+    except KeyError:
+        name = "Blake"
+        b = 845
+    for title, chapter in book.items():
+        for line in chapter:
+            newline = remove_stop_words(remove_stop_words(remove_stop_words(line))).lower()
+            words = word_tokenize(newline)
+            for word in words:
+               fd[word] += 1 
+   
+    ranks = []
+    freqs = []
+   
+    for rank, word in enumerate(fd):
+        ranks.append(rank+1)
+        freqs.append(fd[word])
+        
+    t = "Most frequent words "+name
+    plt.loglog(ranks, freqs)
+    plt.title(t)
+    plt.xlabel('frequency(f)', fontsize=14, fontweight='bold')
+    plt.ylabel('rank(r)', fontsize=14, fontweight='bold')
+    plt.grid(True)
     plt.show()
     
 def stats(l):
@@ -238,6 +320,36 @@ def stats(l):
     print("Kurtosis: ", kurtosis(l))
     print("Skewness: ", skew(l))
     print("Maximum value: ", max(l))
+
+
+def only_first_and_last_words(book_: dict) -> dict:
+    retval = dict()
+    for title, chapter in book_.items():
+        new_chapter = []
+        for line in chapter:
+            # removing stopwords, since they don't contribute to the sentiment
+            line_ = remove_stop_words(remove_stop_words(remove_stop_words(line))) # run twice for better efficiency
+            tokens = line_.split(' ')
+            new_chapter.append([tokens[0], tokens[len(tokens)-1]])
+        retval[title] = new_chapter
+    return retval
+    
+def phonetic(book):
+    phonetics = []
+    try: 
+        a = book["LAMIA."]
+        name = "Keats"
+    except KeyError:
+        name = "Blake"
+    for title, chapter in book.items():
+        for line in chapter:
+            first = line[0]
+            last = line[1]
+            s1 = fuzzy.Soundex(len(first))
+            s2 = fuzzy.Soundex(len(last))
+            
+            
+                
 
 if __name__ == "__main__":
     main()
