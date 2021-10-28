@@ -58,7 +58,7 @@ def plot(path: str, structure: list, title: str):
     #mng.resize(*mng.window.maxsize()) 
     """
     This SHOULD resize the image to maximum size, but boy does it not do that,
-    the image will be *shown* in maximum size, but not saved ¯\_(ツ)_/¯ 
+    the image will be *shown* in maximum size, but not saved in that size ¯\_(ツ)_/¯ 
     """
     mng.full_screen_toggle()
     plt.xlabel("Part of speech tag")
@@ -79,7 +79,7 @@ def task5():
         title_ = config.books[book_ref]['title']
 
         chapters = preprocessing.preprocess(raw_book)
-        # TODO
+
         first_last = preprocessing.only_first_and_last_words(chapters)
 
         tags = tag_words(first_last)
