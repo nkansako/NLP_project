@@ -67,3 +67,26 @@ def tokenize(book):
             newline = remove_stop_words(line)
             all_words += newline
     return word_tokenize(all_words)
+
+
+def four_line_structure(book):
+
+    book = only_first_and_last_words(book)
+
+    counter = 0
+    retval = []
+    
+    lines = []
+    all_lines = []
+    for title, chapter in book.items():
+        for line in chapter:
+            if counter == 4:
+                counter = 0
+                all_lines.append(lines)
+                lines = []
+                
+            counter += 1
+            lines.append(line[1])
+    retval.append(all_lines)
+
+    return retval
