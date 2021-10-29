@@ -3,6 +3,10 @@ import nlp_helpers as helpers
 import preprocessing
 import fuzzy
 import csv
+import matplotlib.pyplot as plt
+import statistics
+from scipy.stats import kurtosis
+from scipy.stats import skew
 
 # constants
 results_path = 'results/8/'
@@ -22,7 +26,7 @@ results_path = 'results/8/'
 # Motivate your answer and display appropriate plotting.
 
 
-def phonetic(book):
+def phonetic(book, title_):
     phonetics = []
     for title, chapter in book.items():
         for line in chapter:
@@ -30,18 +34,135 @@ def phonetic(book):
             last = line[1]
             s1 = fuzzy.Soundex(len(first))
             s2 = fuzzy.Soundex(len(last))
-            print(first, last)  # show what happens
-            l1 = s1(first)  # These fail with non ascii characters
-            l2 = s2(last)
-            print(l1, l2)
-
-            S = len(largest_common_substring(l1, l2, len(l1), len(l2)))
+            #print(first, last)  # show what happens
             try:
-                similarity = 2 * S / (len(l1) + len(l2))
-            except ZeroDivisionError as e:
-                similarity = 0
-            phonetics.append(similarity)
+                l1 = s1(first)  # These fail with non ascii characters
+                l2 = s2(last)
+                #print(l1, l2)
 
+                S = len(largest_common_substring(l1, l2, len(l1), len(l2)))
+                try:
+                    similarity = 2 * S / (len(l1) + len(l2))
+                except ZeroDivisionError as e:
+                    similarity = 0
+                phonetics.append(similarity)
+            except UnicodeEncodeError:
+                print("Error occurred with line")
+                print(first, last)
+
+    plot(results_path + title_ + "_f_l_phonetic.png", phonetics, title_ + " first and last word phonetics")
+
+
+def four_line_phonetic(book, title):
+    phoneticsAABB = []
+    phoneticsABAB = []
+    phoneticsABBA = []
+    for lines in book:
+        for line in lines:
+            last_words = line
+            #print(last_words)
+            s0 = fuzzy.Soundex(len(last_words[0]))
+            s1 = fuzzy.Soundex(len(last_words[1]))
+            s2 = fuzzy.Soundex(len(last_words[2]))
+            s3 = fuzzy.Soundex(len(last_words[3]))
+            last_words[0] = last_words[0].replace("-","").replace("—", "").replace("Æ", "ae").replace("ü", "u").replace("ä", "a").replace("è", "e")
+            last_words[1] = last_words[1].replace("-","").replace("—", "").replace("Æ", "ae").replace("ü", "u").replace("ä", "a").replace("è", "e")
+            last_words[2] = last_words[2].replace("-","").replace("—", "").replace("Æ", "ae").replace("ü", "u").replace("ä", "a").replace("è", "e")
+            last_words[3] = last_words[3].replace("-","").replace("—", "").replace("Æ", "ae").replace("ü", "u").replace("ä", "a").replace("è", "e")
+            try:
+                l0 = s0(last_words[0]) # These fail with non ascii characters
+                l1 = s1(last_words[1])
+                l2 = s2(last_words[2])
+                l3 = s3(last_words[3])
+
+                S0 = len(largest_common_substring(l0, l1, len(l0), len(l1))) # These two are AABB phonetics
+                S1 = len(largest_common_substring(l2, l3, len(l2), len(l3)))
+
+                S2 = len(largest_common_substring(l0, l2, len(l0), len(l2))) # These two are ABAB phonetics
+                S3 = len(largest_common_substring(l1, l3, len(l1), len(l3)))
+
+                S4 = len(largest_common_substring(l0, l3, len(l0), len(l3))) # These two are ABBA phonetics
+                S5 = len(largest_common_substring(l1, l2, len(l1), len(l2)))
+                similarity1 = 0
+                similarity2 = 0
+                try:
+                    similarity1 = 2 * S0 / ( len(l0) + len(l1) )
+                except ZeroDivisionError as e:
+                    similarity1 = 0
+                try:
+                    similarity2 = 2 * S1 / ( len(l2) + len(l3) )
+                except ZeroDivisionError as e:
+                    similarity2 = 0
+
+                similarityAABB = (similarity1 + similarity2) / 2
+                #print(similarityAABB)
+                phoneticsAABB.append(similarityAABB)
+                similarity1 = 0
+                similarity2 = 0
+                try:
+                    similarity1 = 2 * S2 / ( len(l0) + len(l2) )
+                except ZeroDivisionError as e:
+                    similarity1 = 0
+                try:
+                    similarity2= 2 * S3 / ( len(l1) + len(l3) )
+                except ZeroDivisionError as e:
+                    similarity2 = 0
+
+                similarityABAB = (similarity1 + similarity2) / 2
+                #print(similarityABAB)
+                phoneticsABAB.append(similarityABAB)
+                similarity1 = 0
+                similarity2 = 0
+                try:
+                    similarity1 = 2 * S4 / ( len(l0) + len(l3) )
+                except ZeroDivisionError as e:
+                    similarity1 = 0
+                try:
+                    similarity2 = 2 * S5 / ( len(l1) + len(l2) )
+                except ZeroDivisionError as e:
+                    similarity2 = 0
+
+                similarityABBA = (similarity1 + similarity2) / 2
+                #print(similarityABBA)
+                phoneticsABBA.append(similarityABBA)
+            except UnicodeEncodeError: # Dont do anything if any Soundex failed 
+                print("Error occurred with soundex")
+                print(last_words)
+                print("\nSome of these words failed")
+    
+    #print(phoneticsAABB)
+
+    plot(results_path + title + "_AABB_phonetic.png", phoneticsAABB, title + " AABB phonetics")
+    plot(results_path + title + "_ABAB_phonetic.png", phoneticsABAB, title + " ABAB phonetics")
+    plot(results_path + title + "_ABBA_phonetic.png", phoneticsABBA, title + " ABBA phonetics")
+
+    print(title)
+    print("AABB\n")
+    stats(phoneticsAABB)
+    print("ABAB\n")
+    stats(phoneticsABAB)
+    print("ABBA\n")
+    stats(phoneticsABBA)
+
+def plot(path, data, title):
+    unique = list(set(data))
+
+    freq = []
+    
+    for u in unique:
+        c = data.count(u)
+        freq.append(c)
+
+    plt.bar(unique, freq, align="center", width=0.02)
+
+    plt.title(title)
+    plt.xlabel("Edit distance")
+    plt.ylabel("Frequency")
+    if config.action == "save":
+        plt.savefig(path)
+        plt.close()
+    else:
+        plt.show()
 
 def largest_common_substring(X, Y, m, n):
     LCSuff = [[0 for i in range(n + 1)]
@@ -97,10 +218,20 @@ def largest_common_substring(X, Y, m, n):
 
     return ''.join(resultStr)
 
+def stats(l):
+    print("Median: ", statistics.median(l))
+    print("Mean: ", statistics.mean(l))
+    print("Standard deviation: ", statistics.stdev(l))
+    print("Kurtosis: ", kurtosis(l))
+    print("Skewness: ", skew(l))
+    print("Maximum value: ", max(l))
+
 
 def task8():
 
     raw_books = helpers.getBooks()
+
+    
 
     for book_ref, raw_book in raw_books.items():
 
@@ -108,7 +239,13 @@ def task8():
 
         chapters = preprocessing.preprocess(raw_book)
 
-        phonetic(chapters)
+        first_last_words = preprocessing.only_first_and_last_words(chapters)
+
+        four_lines = preprocessing.four_line_structure(chapters)
+
+        phonetic(first_last_words, title_)
+
+        four_line_phonetic(four_lines, title_)
 
 
 if __name__ == "__main__":
