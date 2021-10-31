@@ -23,14 +23,14 @@ def zipfs_law(book, book_ref):
 
     ranks = arange(1, len(counts) + 1)
     indices_ = argsort(counts)
-    frequencies = [counts[index] for index in indices_]
+    frequencies = [counts[index] for index in indices_][::-1]
 
     # plot
     plt.loglog(ranks, frequencies, marker=".")
     title_ = config.books[book_ref]['title']
     plt.title("Zipf plot for " + title_)
-    plt.xlabel("Frequency rank of token")
-    plt.ylabel("Absolute frequency of token")
+    plt.xlabel("Rank of token")
+    plt.ylabel("Token frequency")
     if config.action == 'save':
         path_ = results_path + book_ref + "_zipfs_law"
         plt.savefig(path_)

@@ -59,6 +59,35 @@ def preprocess(raw_book: str) -> dict:
     return chapters
 
 
+def book_to_verses(raw_book: str) -> list:
+    # cleanup
+    verses = list()
+    text_buffer = []  # this variable is used to save lines into an array before putting them into a chapter
+    i = 0
+    for line in raw_book.splitlines():
+        line_cleaned = re.sub(' +', ' ', line).strip()  # removing multiple & first-last whitespaces from the line
+        i += 1
+        if line_cleaned:
+            # not an empty line
+            if not line_cleaned.isupper():
+                # not uppercase - normal text
+                # some lines end with a number; remove the numbers
+                tokens = line_cleaned.split(' ')
+                if tokens[len(tokens)-1].isnumeric():
+                    tokens.pop()  # remove last token
+                text_buffer.append(' '.join(tokens))
+        elif len(text_buffer):
+            verses.append(text_buffer)
+            text_buffer = []
+        else:
+            if len(text_buffer):
+                verses.append(text_buffer)
+                text_buffer = []
+    if len(text_buffer):
+        verses.append(text_buffer)
+    return verses
+
+
 def tokenize(book):
     # break down a preprocessed book into words
     all_words = ""
@@ -67,3 +96,7 @@ def tokenize(book):
             newline = remove_stop_words(line)
             all_words += newline
     return word_tokenize(all_words)
+
+
+def remove_non_ASCII(string: str) -> str:  # removes all non-ASCII characters from the given string
+    return ''.join([i if ord(i) < 128 else '' for i in string])
