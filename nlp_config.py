@@ -24,3 +24,7 @@ trim_values = ["'", "\"", "-", ",", ".", ";", ":", "?", "!", "Æ", 'ü', '’', 
 # phonetic analysis
 similarity_threshold = .5
 display_top = 10
+negation_prefix = ["im", "non", "un", "in", "de", "dis", "a", "anti", "il", "ir"]
+
+#Select corpus
+corpus = "bown" # Can be slow, default to nltk.corpus.words if not specified to be brown

@@ -3,6 +3,9 @@ from enum import Enum
 import nlp_config as config
 import preprocessing
 import numpy as np
+import statistics
+from scipy.stats import kurtosis
+from scipy.stats import skew
 import matplotlib.pyplot as plt
 import os
 from nltk.tokenize import word_tokenize
@@ -82,3 +85,12 @@ def prepare_string(line: str, analysis_type: AnalysisTypes) -> str:
         retval = word_tokenize(retval)
         retval = retval[0]
     return retval
+
+
+def stats(l):
+    print("Median: ", statistics.median(l))
+    print("Mean: ", statistics.mean(l))
+    print("Standard deviation: ", statistics.stdev(l))
+    print("Kurtosis: ", kurtosis(l))
+    print("Skewness: ", skew(l))
+    print("Maximum value: ", max(l))

@@ -1,10 +1,7 @@
 import nlp_config as config
 import nlp_helpers as helpers
 import preprocessing
-import statistics
 import csv
-from scipy.stats import kurtosis
-from scipy.stats import skew
 
 # constants
 results_path = 'results/4/'
@@ -28,15 +25,6 @@ def line_lengths(book, with_space=True):
             if length > 1:
                 lengths.append(length)
     return lengths
-
-
-def stats(l):
-    print("Median: ", statistics.median(l))
-    print("Mean: ", statistics.mean(l))
-    print("Standard deviation: ", statistics.stdev(l))
-    print("Kurtosis: ", kurtosis(l))
-    print("Skewness: ", skew(l))
-    print("Maximum value: ", max(l))
 
 
 def save_to_CSV(data, path):
@@ -75,7 +63,7 @@ def task4():
             title = "Line length frequency with" + ("out" if has_spaces else "") + " spaces " + title_
             helpers.plotting(path=path, x=uniquel, y=freq, title=title)
 
-            stats(uniquel)
+            helpers.stats(uniquel)
 
 
 if __name__ == "__main__":
