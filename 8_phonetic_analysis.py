@@ -1,7 +1,10 @@
+import re
+
 import nlp_config as config
 import nlp_helpers as helpers
 import preprocessing
 import fuzzy
+import csv
 import matplotlib.pyplot as plt
 
 # constants
@@ -46,7 +49,16 @@ def phonetic(book, title_):
                 print("Error occurred with line")
                 print(first, last)
 
-    plot(results_path + title_ + "_f_l_phonetic.png", phonetics, title_ + " first and last word phonetics")
+    snake_case_title = re.sub(r'(?<!^)(?=[A-Z])', '_', title_).lower().replace(" ", "_")
+    save_to_CSV(phonetics, results_path + snake_case_title + "_phonetic_analysis_f_l_w")
+    plot(results_path + snake_case_title + "_f_l_phonetic.png", phonetics, title_ + " first and last word phonetics")
+
+
+def save_to_CSV(data, path):
+    with open(path + '.csv', mode='w') as csv_file:
+        csv_writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        for item in data:
+            csv_writer.writerow([item])
 
 
 def four_line_phonetic(book, title):

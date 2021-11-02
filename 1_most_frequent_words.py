@@ -29,12 +29,12 @@ def save_to_CSV(data, path):
 
 
 def plot(path, data, title):
+    # print(path)
     if config.action == "save":
         plt.ion()
     data.plot(most_common_count, cumulative=False, title="Most frequent words " + title)
-    if config.action != "save":
+    if config.action == "save":
         plt.savefig(path)
-    else:
         plt.ioff()
     plt.close()
 
