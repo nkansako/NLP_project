@@ -17,7 +17,7 @@ most_common_count = 30
 
 
 def most_frequent_words(book):
-    words = preprocessing.tokenize(book)
+    words = preprocessing.tokenize(book, True)
     return FreqDist(words)
 
 
@@ -34,9 +34,10 @@ def plot(path, data, title):
         plt.ion()
     data.plot(most_common_count, cumulative=False, title="Most frequent words " + title)
     if config.action == "save":
+        print('plotting to ' + path)
         plt.savefig(path)
         plt.ioff()
-    plt.close()
+        plt.close()
 
 
 def task1():

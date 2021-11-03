@@ -4,18 +4,20 @@ import nlp_config as config
 import re
 
 
-def remove_stop_words(line: str, repeat: int = 1) -> str:
+def remove_stop_words(line: str, repeat: int = 1, keep_negations: bool = False) -> str:
     # return line
     words = word_tokenize(line)
     sw = stopwords.words('english')
     for word in words:
-        if (word.lower() in sw and word.lower() not in config.negations) or word.lower() in config.special_characters:
+        lower = word.lower()
+        if lower in config.special_characters or \
+                lower in sw or (not keep_negations and lower in config.negations):
             # we want to remove stopwords which are not negations (negations impact the sentiment)
-            words.remove(word)
+            words = list(filter(word.__ne__, words))
     result = ' '.join(words)
     if repeat > 0:
         # due to complex word structure, the stop words removal will be ran multiple times
-        result = remove_stop_words(result, repeat-1)
+        result = remove_stop_words(result, repeat - 1)
     return result
 
 
@@ -25,9 +27,9 @@ def only_first_and_last_words(book_: dict) -> dict:
         new_chapter = []
         for line in chapter:
             # removing stopwords, since they don't contribute to the sentiment
-            line_ = remove_stop_words(line) # run twice for better efficiency
+            line_ = remove_stop_words(line)  # run twice for better efficiency
             tokens = line_.split(' ')
-            new_chapter.append([tokens[0], tokens[len(tokens)-1]])
+            new_chapter.append([tokens[0], tokens[len(tokens) - 1]])
         retval[title] = new_chapter
     return retval
 
@@ -52,7 +54,7 @@ def preprocess(raw_book: str) -> dict:
                 # not uppercase - normal text
                 # some lines end with a number; remove the numbers
                 tokens = line_cleaned.split(' ')
-                if tokens[len(tokens)-1].isnumeric():
+                if tokens[len(tokens) - 1].isnumeric():
                     tokens.pop()  # remove last token
                 text_buffer.append(' '.join(tokens))
             chapters[chapter_name] = text_buffer
@@ -73,7 +75,7 @@ def book_to_verses(raw_book: str) -> list:
                 # not uppercase - normal text
                 # some lines end with a number; remove the numbers
                 tokens = line_cleaned.split(' ')
-                if tokens[len(tokens)-1].isnumeric():
+                if tokens[len(tokens) - 1].isnumeric():
                     tokens.pop()  # remove last token
                 text_buffer.append(' '.join(tokens))
         elif len(text_buffer):
@@ -88,12 +90,12 @@ def book_to_verses(raw_book: str) -> list:
     return verses
 
 
-def tokenize(book):
+def tokenize(book, keep_stopwords: bool = False):
     # break down a preprocessed book into words
     all_words = ""
     for title, chapter in book.items():
         for line in chapter:
-            newline = remove_stop_words(line)
+            newline = remove_stop_words(line, keep_stopwords)
             all_words += newline
     return word_tokenize(all_words)
 
@@ -103,12 +105,11 @@ def remove_non_ASCII(string: str) -> str:  # removes all non-ASCII characters fr
 
 
 def four_line_structure(book):
-
     book = only_first_and_last_words(book)
 
     counter = 0
     retval = []
-    
+
     lines = []
     all_lines = []
     for title, chapter in book.items():
@@ -117,7 +118,7 @@ def four_line_structure(book):
                 counter = 0
                 all_lines.append(lines)
                 lines = []
-                
+
             counter += 1
             lines.append(line[1])
     retval.append(all_lines)
