@@ -2,6 +2,7 @@ import nlp_config as config
 import nlp_helpers as helpers
 import matplotlib.pyplot as plt
 import preprocessing
+import csv
 from nltk import pos_tag
 
 # constants
@@ -48,6 +49,13 @@ def plot(path, sorted_pos, title):
         plt.show()
 
 
+def save_to_CSV(data, path):
+    with open(path + '.csv', mode='w') as csv_file:
+        csv_writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        for pair in data:
+            csv_writer.writerow([pair[0], pair[1]])
+
+
 def task3():
 
     raw_books = helpers.getBooks()
@@ -61,6 +69,8 @@ def task3():
 
         path = results_path + book_ref + '_part_of_speech_tagging'
         plot(path=path, sorted_pos=sorted_pos, title="Part of speech frequency " + title_)
+
+        save_to_CSV(sorted_pos, path)
 
 
 if __name__ == "__main__":
